@@ -21,20 +21,19 @@ class Calculator:
 
     def get_today_stats(self):
         # As we discussed, my first list comprehension :)
-        todays_amount = 0
-        todays_amount = sum([todays_amount + item.amount for item
-                             in self.records if item.date == current_date()])
+        date_now = dt.date.today()
+        todays_amount = sum([item.amount for item
+                             in self.records if item.date == date_now])
         return todays_amount
 
     def get_week_stats(self):
         # Setting variable for the date that was a week ago:
-        week_ago = current_date() - dt.timedelta(days=7)
-        this_week_amount = 0
-        for item in self.records:
-            # If record date less than a week ago AND it's not in the future
-            #    - adds item.amount to this_week_spent_amount:
-            if week_ago <= item.date <= current_date():
-                this_week_amount += float(item.amount)
+        # I've Decided to put date like that, probably not the best option
+        date_now = dt.date.today()
+        week_ago = date_now - dt.timedelta(days=7)
+        # Another list comprehension!
+        this_week_amount = sum([item.amount for item in self.records if
+                               week_ago <= item.date <= date_now])
         return round(this_week_amount, 2)
 
     def remaining_stat_calculation(self):
@@ -56,11 +55,11 @@ class CashCalculator(Calculator):
         currencies_list = {'rub': ('руб', 1),
                            'eur': ('Euro', CashCalculator.EURO_RATE),
                            'usd': ('USD', CashCalculator.USD_RATE)}
-        # Setting up right currency name:
-        currency_name = currencies_list[currency][0]
+        # Using unpacking to get currency name and rate:
+        currency_name, currency_rate = currencies_list[currency]
         # Calculating the amount of cash remaining.
-        remaining_cash = round((super().remaining_stat_calculation()
-                                / currencies_list[currency][1]), 2)
+        remaining_cash = round((self.remaining_stat_calculation()
+                                / currency_rate), 2)
         # Generating an answers prefix:
         if remaining_cash > 0:
             message = 'На сегодня осталось'
@@ -79,7 +78,7 @@ class CaloriesCalculator(Calculator):
 
     def get_calories_remained(self):
         # Calling self.get_today_stats() to calculate remaining_calories:
-        remaining_calories = int(super().remaining_stat_calculation())
+        remaining_calories = int(self.remaining_stat_calculation())
 
         if remaining_calories > 0:
             return ('Сегодня можно съесть что-нибудь ещё, но с общей '
@@ -96,10 +95,29 @@ class Record:
         # transform hand-written dates into datetime.date
         # or if no date was provided - setting current date:
         if date is None:
-            date = current_date()
+            date = dt.date.today()
         else:
             date = current_date(date)
 
         self.date = date
         self.amount = amount
         self.comment = comment
+
+
+# создадим калькулятор денег с дневным лимитом 1000
+cash_calculator = CashCalculator(1000)
+
+# дата в параметрах не указана,
+# так что по умолчанию к записи
+# должна автоматически добавиться сегодняшняя дата
+cash_calculator.add_record(Record(amount=145, comment='кофе'))
+# и к этой записи тоже дата должна добавиться автоматически
+cash_calculator.add_record(Record(amount=300, comment='Серёге за обед'))
+# а тут пользователь указал дату, сохраняем её
+cash_calculator.add_record(Record(amount=3000,
+                                  comment='бар в Танин др',
+                                  date='08.11.2019'))
+
+print(cash_calculator.get_today_cash_remained('rub'))
+# должно напечататься
+# На сегодня осталось 555 руб
