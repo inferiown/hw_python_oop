@@ -1,17 +1,6 @@
 import datetime as dt
 
 
-# Converts date in the right format
-# depending on whether date was provided or not.
-# Made it as a function, which I call in different parts
-# of the code to get current date.
-# I left it like that just in case someone in the future decide to use
-# the function without providing the date. In other case
-# date_provided=dt.datetime.now().strftime('%d.%m.%Y') might be deleted.
-def current_date(date_provided=dt.datetime.now().strftime('%d.%m.%Y')):
-    return dt.datetime.strptime(date_provided, '%d.%m.%Y').date()
-
-
 class Calculator:
     '''CashCalculator and CaloriesCalculator parent class.'''
 
@@ -100,7 +89,7 @@ class Record:
         if date is None:
             date = dt.date.today()
         else:
-            date = current_date(date)
+            date = dt.datetime.strptime(date, '%d.%m.%Y').date()
 
         self.date = date
         self.amount = amount
